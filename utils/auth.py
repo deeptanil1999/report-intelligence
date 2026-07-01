@@ -5,7 +5,9 @@ ROLE_HIERARCHY = {"viewer": 0, "engineer": 1, "admin": 2, "owner": 3}
 
 
 def _clean(value: str) -> str:
-    return str(value).strip().encode("ascii", "ignore").decode("ascii")
+    import re
+    # Remove ALL whitespace including embedded newlines from line-wrapped pastes
+    return re.sub(r"\s+", "", str(value)).encode("ascii", "ignore").decode("ascii")
 
 
 def init_supabase() -> Client:
