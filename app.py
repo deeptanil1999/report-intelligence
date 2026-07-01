@@ -1,5 +1,4 @@
 import streamlit as st
-from utils.auth import init_supabase, _load_user_org, _show_login_form, _show_org_setup, render_sidebar
 
 st.set_page_config(
     page_title="Report Intelligence",
@@ -8,9 +7,25 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-supabase = init_supabase()
+# Validate secrets are present before importing anything that uses them
+required_secrets = ["SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_SERVICE_KEY", "PDF_BUCKET"]
+missing = [k for k in required_secrets if not st.secrets.get(k)]
+if missing:
+    st.error(f"Missing required secrets: {', '.join(missing)}. Add them in Streamlit Cloud → Manage App → Secrets.")
+    st.stop()
 
-# Restore session from Supabase if we have a stored access token
+from utils.auth import init_supabase, _load_user_org, _show_login_form, _show_org_setup, render_sidebar
+
+try:
+    supabase = init_supabase()
+except Exception as e:
+    st.error(
+        f"Could not connect to database: {e}\n\n"
+        "Check that SUPABASE_URL and SUPABASE_ANON_KEY are correct in Streamlit Cloud → Manage App → Secrets."
+    )
+    st.stop()
+
+# Restore session if already logged in
 if "user" not in st.session_state:
     try:
         session = supabase.auth.get_session()
@@ -35,10 +50,8 @@ if not role or not project_id:
     _show_org_setup(supabase, user)
     st.stop()
 
-# Render sidebar for authenticated users
 render_sidebar(user, role)
 
-# Landing page content
 st.title("Report Intelligence")
 st.markdown(
     "Welcome to **Report Intelligence** — your construction QA report management platform.\n\n"
