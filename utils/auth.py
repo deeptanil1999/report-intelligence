@@ -4,15 +4,19 @@ from supabase import create_client, Client
 ROLE_HIERARCHY = {"viewer": 0, "engineer": 1, "admin": 2, "owner": 3}
 
 
+def _clean(value: str) -> str:
+    return str(value).strip().encode("ascii", "ignore").decode("ascii")
+
+
 def init_supabase() -> Client:
-    url = st.secrets["SUPABASE_URL"]
-    key = st.secrets["SUPABASE_ANON_KEY"]
+    url = _clean(st.secrets["SUPABASE_URL"])
+    key = _clean(st.secrets["SUPABASE_ANON_KEY"])
     return create_client(url, key)
 
 
 def init_supabase_service() -> Client:
-    url = st.secrets["SUPABASE_URL"]
-    key = st.secrets["SUPABASE_SERVICE_KEY"]
+    url = _clean(st.secrets["SUPABASE_URL"])
+    key = _clean(st.secrets["SUPABASE_SERVICE_KEY"])
     return create_client(url, key)
 
 
